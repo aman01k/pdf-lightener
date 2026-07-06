@@ -26,7 +26,19 @@ if uploaded_file:
         )
 
         # Invert colors
-        img = ImageOps.invert(img)
+        img_array = np.array(img)
+
+        # Calculate brightness of every pixel
+        brightness = img_array.mean(axis=2)
+
+        # Threshold for dark pixels
+        threshold = 50
+
+        # Only convert dark pixels to white
+        img_array[brightness < threshold] = [255, 255, 255]
+
+        # Convert back to PIL image
+        img = Image.fromarray(img_array)
 
         buffer = io.BytesIO()
         img.save(buffer, format="JPEG", quality=85)
