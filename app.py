@@ -46,7 +46,7 @@ def convert_image(img):
 
     BLACK_THRESHOLD = 40  # 0-255
     WHITE_THRESHOLD = 240  # 0-255
-    LIGHT_GRAY = 235
+    DARK_GRAY = (140, 140, 140)
 
     for y in range(height):
         for x in range(width):
@@ -58,7 +58,7 @@ def convert_image(img):
 
             # Near white
             elif r >= WHITE_THRESHOLD and g >= WHITE_THRESHOLD and b >= WHITE_THRESHOLD:
-                pixels[x, y] = (LIGHT_GRAY, LIGHT_GRAY, LIGHT_GRAY)
+                pixels[x, y] = DARK_GRAY
 
             # Else: leave unchanged
 
