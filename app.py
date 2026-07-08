@@ -44,9 +44,9 @@ def convert_image(img):
 
     width, height = img.size
 
-    BLACK_THRESHOLD = 40  # 0-255
-    WHITE_THRESHOLD = 240  # 0-255
-    LIGHT_GRAY = 235
+    BLACK_THRESHOLD = 60  # 0-255
+    # WHITE_THRESHOLD = 245  # 0-255
+    # LIGHT_GRAY = 230
 
     for y in range(height):
         for x in range(width):
@@ -57,8 +57,8 @@ def convert_image(img):
                 pixels[x, y] = (255, 255, 255)
 
             # Near white
-            elif r >= WHITE_THRESHOLD and g >= WHITE_THRESHOLD and b >= WHITE_THRESHOLD:
-                pixels[x, y] = (LIGHT_GRAY, LIGHT_GRAY, LIGHT_GRAY)
+            # elif r >= WHITE_THRESHOLD and g >= WHITE_THRESHOLD and b >= WHITE_THRESHOLD:
+            #     pixels[x, y] = (LIGHT_GRAY, LIGHT_GRAY, LIGHT_GRAY)
 
             # Else: leave unchanged
 
