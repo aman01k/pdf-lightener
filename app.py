@@ -1,7 +1,7 @@
 import io
 import fitz
 import streamlit as st
-from PIL import Image, ImageOps
+from PIL import Image
 
 st.set_page_config(page_title="PDF Lightener", layout="wide")
 
@@ -32,10 +32,42 @@ def parse_page_range(page_range, total_pages):
     return sorted(pages)
 
 
+def convert_image(img):
+    """
+    Black (or near-black) -> White
+    White (or near-white) -> Light Gray
+    Everything else -> Unchanged
+    """
+
+    img = img.convert("RGB")
+    pixels = img.load()
+
+    width, height = img.size
+
+    BLACK_THRESHOLD = 40  # 0-255
+    WHITE_THRESHOLD = 240  # 0-255
+    LIGHT_GRAY = 235
+
+    for y in range(height):
+        for x in range(width):
+            r, g, b = pixels[x, y]
+
+            # Near black
+            if r <= BLACK_THRESHOLD and g <= BLACK_THRESHOLD and b <= BLACK_THRESHOLD:
+                pixels[x, y] = (255, 255, 255)
+
+            # Near white
+            elif r >= WHITE_THRESHOLD and g >= WHITE_THRESHOLD and b >= WHITE_THRESHOLD:
+                pixels[x, y] = (LIGHT_GRAY, LIGHT_GRAY, LIGHT_GRAY)
+
+            # Else: leave unchanged
+
+    return img
+
+
 uploaded_file = st.file_uploader("Choose a PDF", type="pdf")
 
 if uploaded_file:
-
     pdf = fitz.open(stream=uploaded_file.read(), filetype="pdf")
     output = fitz.open()
 
@@ -48,7 +80,6 @@ if uploaded_file:
     )
 
     if st.button("Convert PDF"):
-
         pages_to_convert = parse_page_range(page_range, total_pages)
 
         if pages_to_convert is None or len(pages_to_convert) == 0:
@@ -60,7 +91,6 @@ if uploaded_file:
         progress = st.progress(0)
 
         for i, page in enumerate(pdf):
-
             pix = page.get_pixmap(
                 matrix=fitz.Matrix(1.5, 1.5),
                 alpha=False,
@@ -72,9 +102,8 @@ if uploaded_file:
                 pix.samples,
             )
 
-            # Convert only the selected pages
             if i in pages_to_convert:
-                img = ImageOps.invert(img)
+                img = convert_image(img)
 
             buffer = io.BytesIO()
             img.save(buffer, format="JPEG", quality=85)
