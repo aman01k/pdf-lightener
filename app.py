@@ -32,10 +32,10 @@ def parse_page_range(page_range, total_pages):
     return sorted(pages)
 
 
-def convert_image(img):
+def convert_image(img, gray_intensity=220):
     """
     Black (or near-black) -> White
-    White (or near-white) -> Light Gray
+    White (or near-white) -> Adjustable Gray
     Everything else -> Unchanged
     """
 
@@ -44,23 +44,36 @@ def convert_image(img):
 
     width, height = img.size
 
-    BLACK_THRESHOLD = 40  # 0-255
-    WHITE_THRESHOLD = 240  # 0-255
-    DARK_GRAY = (140, 140, 140)
+    BLACK_THRESHOLD = 40
+    WHITE_THRESHOLD = 240
+
+    ADJUSTABLE_GRAY = (
+        gray_intensity,
+        gray_intensity,
+        gray_intensity,
+    )
 
     for y in range(height):
         for x in range(width):
             r, g, b = pixels[x, y]
 
-            # Near black
-            if r <= BLACK_THRESHOLD and g <= BLACK_THRESHOLD and b <= BLACK_THRESHOLD:
+            # Near black -> White
+            if (
+                r <= BLACK_THRESHOLD
+                and g <= BLACK_THRESHOLD
+                and b <= BLACK_THRESHOLD
+            ):
                 pixels[x, y] = (255, 255, 255)
 
-            # Near white
-            elif r >= WHITE_THRESHOLD and g >= WHITE_THRESHOLD and b >= WHITE_THRESHOLD:
-                pixels[x, y] = DARK_GRAY
+            # Near white -> Adjustable Gray
+            elif (
+                r >= WHITE_THRESHOLD
+                and g >= WHITE_THRESHOLD
+                and b >= WHITE_THRESHOLD
+            ):
+                pixels[x, y] = ADJUSTABLE_GRAY
 
-            # Else: leave unchanged
+            # Everything else remains unchanged
 
     return img
 
@@ -77,6 +90,20 @@ if uploaded_file:
         "Pages to convert",
         value=f"1-{total_pages}",
         help="Examples: 1-10, 5-20, 8, 1-5,8,10-15",
+    )
+
+    gray_intensity = st.slider(
+        "White → Gray Intensity",
+        min_value=180,
+        max_value=255,
+        value=220,
+        step=1,
+        help=(
+            "180 = Dark Gray\n"
+            "200 = Medium Gray\n"
+            "220 = Light Gray (Recommended)\n"
+            "255 = Keep White"
+        ),
     )
 
     if st.button("Convert PDF"):
@@ -103,12 +130,20 @@ if uploaded_file:
             )
 
             if i in pages_to_convert:
-                img = convert_image(img)
+                img = convert_image(
+                    img,
+                    gray_intensity=gray_intensity,
+                )
 
             buffer = io.BytesIO()
             img.save(buffer, format="JPEG", quality=85)
 
-            rect = fitz.Rect(0, 0, pix.width, pix.height)
+            rect = fitz.Rect(
+                0,
+                0,
+                pix.width,
+                pix.height,
+            )
 
             new_page = output.new_page(
                 width=pix.width,
